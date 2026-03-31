@@ -1,27 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>商品一覧</title>
+<x-app-layout>
 
-    <script>
-    function addToCart(productId) {
-        fetch('/cart/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ product_id: productId })
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert('カートに追加しました');
-        });
-    }
-    </script>
-</head>
-<body>
     <h1>商品一覧</h1>
 
     @if (session('success'))
@@ -59,5 +37,23 @@
         </tr>
         @endforeach
     </table>
-</body>
-</html>
+
+    <script>
+    function addToCart(productId) {
+        fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ product_id: productId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('cart-count').innerText = data.count;
+            alert('カートに追加しました');
+        });
+    }
+    </script>
+
+</x-app-layout>

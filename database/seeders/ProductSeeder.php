@@ -16,7 +16,7 @@ class ProductSeeder extends Seeder
         Product::create([
             'name' => 'りんご',
             'price' => 100,
-            'stock' => 5
+            'stock' => 50
         ]);
 
         Product::create([

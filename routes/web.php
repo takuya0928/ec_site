@@ -1,95 +1,114 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Models\Product;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
+use App\Models\Product;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
 
+// =========================
+// トップ（商品一覧）
+// =========================
+Route::get('/', function () {
+    $products = Product::all();
+    return view('products.index', compact('products'));
+});
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
+// =========================
+// カート関連（ログイン必須）
+// =========================
+Route::middleware('auth')->group(function () {
+
+    // カート画面
+    Route::get('/cart', function () {
+        $cart = session()->get('cart', []);
+        $products = Product::whereIn('id', array_keys($cart))->get();
+
+        return view('cart.index', compact('products', 'cart'));
+    });
+
+    // カート追加
+    Route::post('/cart/add', [CartController::class, 'add']);
+
+    // カート削除
+    Route::post('/cart/remove', function (Request $request) {
+        $cart = session()->get('cart', []);
+
+        unset($cart[$request->product_id]);
+
+        session()->put('cart', $cart);
+
+        return redirect('/cart');
+    });
+
+    // カート件数取得（非同期用）
+    Route::get('/cart/count', [CartController::class, 'count']);
+
+    // 注文処理（トランザクション）
+    Route::post('/order/checkout', [OrderController::class, 'checkout']);
+
+});
+
+
+// =========================
+// プロフィール（Breeze標準）
+// =========================
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::get('/', function () {
-    $products = Product::all();
-    return view('products.index', compact('products'));
+
+// =========================
+// ログアウト
+// =========================
+Route::post('/logout', function () {
+    Auth::logout();
+    session()->invalidate();
+    session()->regenerateToken();
+
+    return redirect('/');
 });
 
-Route::get('/cart', function () {
-    $cart = session()->get('cart', []);
-    $products = Product::whereIn('id', array_keys($cart))->get();
-
-    return view('cart.index', compact('products', 'cart'));
-})->middleware('auth');
-
-Route::post('/cart/add', function (Request $request) {
-    $cart = session()->get('cart', []);
-
-    $productId = $request->product_id;
-
-    if (isset($cart[$productId])) {
-        $cart[$productId]++;
-    } else {
-        $cart[$productId] = 1;
-    }
-
-    session()->put('cart', $cart);
-
-    return response()->json(['status' => 'ok']);
-})->middleware('auth');
-
-Route::post('/cart/remove', function (Request $request) {
-    $cart = session()->get('cart', []);
-
-    unset($cart[$request->product_id]);
-
-    session()->put('cart', $cart);
-
-    return redirect('/cart');
-})->middleware('auth');
-
-Route::post('/order', function () {
+Route::post('/order/checkout', function () {
 
     DB::transaction(function () {
 
         $cart = session()->get('cart', []);
 
         foreach ($cart as $productId => $quantity) {
-            $product = \App\Models\Product::find($productId);
+            $product = \App\Models\Product::lockForUpdate()->find($productId);
 
-            // 在庫チェック
-            if ($product->stock < $quantity) {
+            if (!$product || $product->stock < $quantity) {
                 abort(400, '在庫不足');
             }
 
-            // 在庫減らす
             $product->stock -= $quantity;
             $product->save();
         }
 
-        // カート空にする
         session()->forget('cart');
     });
 
-    return redirect('/')->with('success', '購入完了！');
+    return response()->json([
+        'message' => '注文完了しました'
+    ]);
 })->middleware('auth');
 
+
+// =========================
+// 認証ルート（Breeze）
+// =========================
 require __DIR__.'/auth.php';

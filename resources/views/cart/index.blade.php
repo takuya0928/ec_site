@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>カート</title>
 </head>
+
 <body>
     <h1>カート</h1>
 
@@ -41,10 +44,39 @@
 
     <h2>合計: {{ $total }} 円</h2>
 
-    <form method="POST" action="/order">
-    @csrf
-    <button type="submit">注文する</button>
-</form>
+    <button onclick="checkout()">注文する</button>
+
+    <script>
+    function checkout() {
+
+        const token = document.querySelector('meta[name="csrf-token"]').content;
+
+        fetch('/order/checkout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token
+            }
+        })
+        .then(async (res) => {
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text);
+            }
+
+            return res.json();
+        })
+        .then(data => {
+            alert(data.message);
+            location.href = '/';
+        })
+        .catch(err => {
+            console.log(err);
+            alert('注文に失敗しました');
+        });
+    }
+    </script>
 
 </body>
 </html>
