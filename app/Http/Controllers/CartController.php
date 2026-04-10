@@ -42,4 +42,13 @@ class CartController extends Controller
 
         return redirect('/cart');
     }
+
+    public function count()
+{
+    $cart = session()->get('cart', []);
+
+    return response()->json([
+        'count' => array_sum($cart)
+    ]);
+}
 }

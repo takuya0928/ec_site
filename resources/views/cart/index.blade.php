@@ -1,82 +1,78 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>カート</title>
-</head>
+<x-app-layout>
 
-<body>
-    <h1>カート</h1>
+<h1>カート</h1>
 
-    <a href="/">商品一覧へ戻る</a>
+<a href="/">← 商品一覧へ戻る</a>
 
-    <table border="1">
-        <tr>
-            <th>商品名</th>
-            <th>価格</th>
-            <th>数量</th>
-            <th>小計</th>
-            <th>操作</th>
-        </tr>
+<div class="cart-list">
 
-        @php $total = 0; @endphp
+    @php $total = 0; @endphp
 
-        @foreach ($products as $product)
-        <tr>
-            <td>{{ $product->name }}</td>
-            <td>{{ $product->price }}</td>
-            <td>{{ $cart[$product->id] }}</td>
-            <td>{{ $product->price * $cart[$product->id] }}</td>
+    @foreach ($products as $product)
+    <div class="cart-card">
 
-            <td>
-                <form method="POST" action="/cart/remove">
-                    @csrf
-                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                    <button type="submit">削除</button>
-                </form>
-            </td>
-        </tr>
+        <h2>{{ $product->name }}</h2>
 
-        @php $total += $product->price * $cart[$product->id]; @endphp
-        @endforeach
-    </table>
+        <p>価格：¥{{ number_format($product->price) }}</p>
 
-    <h2>合計: {{ $total }} 円</h2>
+        <p>数量：{{ $cart[$product->id] }}</p>
 
-    <button onclick="checkout()">注文する</button>
+        <p>
+            小計：
+            ¥{{ number_format($product->price * $cart[$product->id]) }}
+        </p>
 
-    <script>
-    function checkout() {
+        <form method="POST" action="/cart/remove">
+            @csrf
+            <input type="hidden" name="product_id" value="{{ $product->id }}">
+            <button type="submit" class="delete-btn">
+                削除
+            </button>
+        </form>
 
-        const token = document.querySelector('meta[name="csrf-token"]').content;
+    </div>
 
-        fetch('/order/checkout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': token
-            }
-        })
-        .then(async (res) => {
+    @php $total += $product->price * $cart[$product->id]; @endphp
+    @endforeach
 
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text);
-            }
+</div>
 
-            return res.json();
-        })
-        .then(data => {
-            alert(data.message);
-            location.href = '/';
-        })
-        .catch(err => {
-            console.log(err);
-            alert('注文に失敗しました');
-        });
-    }
-    </script>
+<h2 class="total">合計：¥{{ number_format($total) }}</h2>
 
-</body>
-</html>
+<button onclick="checkout()" class="checkout-btn">
+    注文する
+</button>
+
+<script>
+function checkout() {
+
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+
+    fetch('/cart/count')
+    .then(res => res.json())
+    .then(data => {
+        const countEl = document.getElementById('cart-count');
+        if (countEl) {
+            countEl.innerText = data.count;
+        }
+    });
+
+    fetch('/order/checkout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        location.href = '/';
+    })
+    .catch(() => {
+        alert('注文に失敗しました');
+    });
+}
+</script>
+
+</x-app-layout>

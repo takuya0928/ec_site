@@ -36,6 +36,7 @@ Route::get('/dashboard', function () {
     return redirect('/');
 });
 
+Route::get('/cart/count', [CartController::class, 'count']);
 
 // =========================
 // 認証ルート（Breeze）

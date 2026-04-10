@@ -1,81 +1,43 @@
 <x-app-layout>
 
-<style>
-table {
-    border-collapse: collapse;
-    width: 60%;
-    margin-top: 20px;
-}
-
-th, td {
-    border: 1px solid #333;
-    padding: 10px;
-    text-align: center;
-}
-
-th {
-    background-color: #f0f0f0;
-}
-
-tr:nth-child(even) {
-    background-color: #fafafa;
-}
-
-button {
-    padding: 5px 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #45a049;
-}
-
-a {
-    color: blue;
-    text-decoration: underline;
-}
-</style>
-
 <h1>商品一覧</h1>
 
 @if (session('success'))
     <p style="color: green;">{{ session('success') }}</p>
 @endif
 
-<a href="/cart">カートを見る</a>
-
-<table>
-    <tr>
-        <th>商品名</th>
-        <th>価格</th>
-        <th>在庫</th>
-        <th>操作</th>
-    </tr>
+<div class="product-list">
 
     @foreach ($products as $product)
-    <tr>
-        <td>{{ $product->name }}</td>
-        <td>{{ $product->price }}</td>
-        <td>{{ $product->stock }}</td>
-        <td>
-            @auth
-                @if ($product->stock > 0)
-                    <button onclick="addToCart({{ $product->id }})">
-                        カートに追加
-                    </button>
-                @else
-                    売り切れ
-                @endif
+    <div class="product-card">
+
+        <h2>{{ $product->name }}</h2>
+
+        <p>価格：¥{{ number_format($product->price) }}</p>
+
+        <p>
+            在庫：
+            @if ($product->stock > 0)
+                {{ $product->stock }}
             @else
-                <a href="/login">ログインして購入</a>
-            @endauth
-        </td>
-    </tr>
+                <span class="soldout">売り切れ</span>
+            @endif
+        </p>
+
+        @auth
+            @if ($product->stock > 0)
+                <button onclick="addToCart({{ $product->id }})">
+                    カートに追加
+                </button>
+            @endif
+        @else
+            <a href="/login">ログインして購入</a>
+        @endauth
+
+    </div>
     @endforeach
-</table>
+
+</div>
 
 <script>
 function addToCart(productId) {

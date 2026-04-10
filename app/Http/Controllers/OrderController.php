@@ -37,6 +37,8 @@ class OrderController extends Controller
             session()->forget('cart');
         });
 
-        return redirect('/')->with('success', '購入完了！');
+        return response()->json([
+    'message' => '注文完了しました'
+]);
     }
 }
