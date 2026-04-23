@@ -12,6 +12,14 @@
         <a href="/cart">
             カート（<span id="cart-count">{{ count(session('cart', [])) }}</span>）
         </a>
+
+        <a href="/admin/products" class="text-gray-700">
+        商品管理
+    </a>
+
+    <a href="/admin/users" class="text-gray-700">
+        ユーザー管理
+    </a>
     </div>
 
     <!-- ユーザー -->

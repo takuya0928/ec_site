@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Product;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderCompleted;
 
 class OrderController extends Controller
 {
@@ -32,10 +34,13 @@ class OrderController extends Controller
                 $product->stock -= $quantity;
                 $product->save();
             }
-
-            // カート空にする
-            session()->forget('cart');
         });
+
+        // ここでメール送信（トランザクションの外）
+        Mail::to(Auth::user()->email)->send(new OrderCompleted($cart));
+
+        // カート削除
+            session()->forget('cart');
 
         return response()->json([
     'message' => '注文完了しました'

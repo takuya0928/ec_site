@@ -4,7 +4,8 @@ table {
     margin-top: 20px;
 }
 
-th, td {
+th,
+td {
     border: 1px solid #333;
     padding: 10px;
     text-align: center;
@@ -20,7 +21,7 @@ tr:nth-child(even) {
 
 button {
     padding: 5px 10px;
-    background-color: #4CAF50;
+    background-color: #4caf50;
     color: white;
     border: none;
     cursor: pointer;
@@ -44,7 +45,7 @@ button:hover {
     padding: 15px;
     width: 200px;
     border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     text-align: center;
     background: #fff;
 }
@@ -83,7 +84,7 @@ button:hover {
     padding: 15px;
     width: 220px;
     border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     background: #fff;
     text-align: center;
 }
